@@ -1,0 +1,43 @@
+{% extends "gadget_cave/base.html" %}
+{% block title %}
+    {% if category %}{{ category.name }}{% else %}All Products{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <h4>Categories</h4>
+        <div class="list-group">
+            <a href="{% url 'gadget_cave:home' %}" class="list-group-item list-group-item-action {% if not category %}active{% endif %}">All</a>
+            {% for c in categories %}
+                <a href="{% url 'gadget_cave:product_list_by_category' c.slug %}" class="list-group-item list-group-item-action {% if category.slug == c.slug %}active{% endif %}">{{ c.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-9">
+        <h2>{% if category %}{{ category.name }}{% else %}All Products{% endif %}</h2>
+        <div class="row">
+            {% for product in products %}
+            <div class="col-md-4">
+                <div class="product-card">
+                    <a href="{{ product.get_absolute_url }}">
+                        {% if product.main_image %}
+                            <img src="{{ product.main_image.url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/200x200?text=No+Image" alt="No Image">
+                        {% endif %}
+                    </a>
+                    <h5><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h5>
+                    <p>₹{{ product.price }}</p>
+                    <a href="{{ product.get_absolute_url }}" class="btn btn-info btn-sm">More Details</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p>No products available in this category.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

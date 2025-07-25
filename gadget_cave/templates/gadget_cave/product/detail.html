@@ -1,0 +1,114 @@
+{% extends "gadget_cave/base.html" %}
+{% load static %}
+
+{% block title %}
+    {{ product.name }}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        {% if product.main_image %}
+            <img id="mainProductImage" src="{{ product.main_image.url }}" alt="{{ product.name }}" class="img-fluid product-detail-image"> {# <-- ഇവിടെ മാറ്റം വരുത്തി #}
+        {% else %}
+            <img id="mainProductImage" src="{% static 'gadget_cave/img/no_image.png' %}" alt="No Image" class="img-fluid product-detail-image">
+        {% endif %}
+        <div class="mt-3">
+            {# אם main_image הוא שדה ImageField ישיר במוצר, זה לא נכון להציג אותו שוב כתמונה נוספת ככה #}
+            {# אלא אם כן אתם רוצים את זה כ thumbnail נוסף #}
+            {% if product.main_image %}
+                <img src="{{ product.main_image.url }}" class="extra-image-thumbnail" onclick="changeMainImage(this.src)"> {# <-- ഇവിടെയും മാറ്റം വരുത്തി #}
+            {% endif %}
+            {% for extra_image in product.images.all %} {# <-- product.extra_images.all എന്നത് product.images.all എന്നായിരിക്കും #}
+                <img src="{{ extra_image.image.url }}" class="extra-image-thumbnail" onclick="changeMainImage(this.src)">
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h1>{{ product.name }}</h1>
+        <p class="lead"><strong>Category:</strong> <a href="{% url 'gadget_cave:product_list_by_category' product.category.slug %}">{{ product.category.name }}</a></p>
+        <p class="lead"><strong>Price:</strong> ₹{{ product.price }}</p>
+        <p><strong>Availability:</strong> {% if product.stock > 0 %}In Stock ({{ product.stock }} items left){% else %}Out of Stock{% endif %}</p>
+        <hr>
+        <h4>Description:</h4>
+        <p>{{ product.description|linebreaksbr }}</p>
+
+        {% if product.stock > 0 %}
+            {# Single quantity input for both "Add to Cart" and "Buy Now" #}
+            <div class="form-group row align-items-center mb-3">
+                <label for="id_quantity" class="col-sm-3 col-form-label">Quantity:</label>
+                <div class="col-sm-5">
+                    {# This is the ONE visible quantity input #}
+                    <input type="number" name="quantity_visible" id="id_quantity" value="1" min="1" class="form-control">
+                </div>
+            </div>
+
+            <div class="button-group">
+                {# "Add to Cart" button will submit its own form via JavaScript #}
+                <form id="addToCartForm" action="{% url 'gadget_cave:cart_add' product.id %}" method="post" style="display:inline-block;">
+                    {% csrf_token %}
+                    {# Hidden quantity field for Add to Cart - updated by JS #}
+                    <input type="hidden" name="quantity" id="add_to_cart_quantity" value="1">
+                    <button type="submit" class="btn btn-primary mr-2">Add to Cart</button>
+                    <input type="hidden" name="override" value="False"> {# If you need the override field for cart_add #}
+                </form>
+
+                {# "Buy Now" button will submit its own form via JavaScript #}
+                <form id="buyNowForm" action="{% url 'gadget_cave:buy_now' product.id %}" method="post" style="display:inline-block; margin-left: 10px;">
+                    {% csrf_token %}
+                    {# Hidden quantity field for Buy Now - updated by JS #}
+                    <input type="hidden" name="quantity" id="buy_now_quantity" value="1">
+                    <button type="submit" class="btn btn-success">Buy Now</button>
+                </form>
+            </div>
+        {% else %}
+            <p class="text-danger">This product is currently out of stock.</p>
+        {% endif %}
+
+        <hr>
+        <p class="text-muted">Created: {{ product.created|date:"M d, Y" }} | Last Updated: {{ product.updated|date:"M d, Y" }}</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeMainImage(src) {
+        document.getElementById('mainProductImage').src = src;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainQuantityInput = document.getElementById('id_quantity'); // The visible quantity input
+        const addToCartQuantityInput = document.getElementById('add_to_cart_quantity'); // Hidden for Add to Cart form
+        const buyNowQuantityInput = document.getElementById('buy_now_quantity'); // Hidden for Buy Now form
+
+        function updateHiddenQuantities() {
+            if (mainQuantityInput) {
+                const currentQuantity = mainQuantityInput.value;
+                if (addToCartQuantityInput) {
+                    addToCartQuantityInput.value = currentQuantity;
+                }
+                if (buyNowQuantityInput) {
+                    buyNowQuantityInput.value = currentQuantity;
+                }
+            }
+        }
+
+        updateHiddenQuantities();
+
+        if (mainQuantityInput) {
+            mainQuantityInput.addEventListener('input', updateHiddenQuantities);
+        }
+
+        if (mainQuantityInput) {
+            mainQuantityInput.addEventListener('change', function() {
+                let val = parseInt(this.value);
+                if (isNaN(val) || val < 1) {
+                    this.value = 1;
+                }
+                updateHiddenQuantities();
+            });
+        }
+    });
+</script>
+{% endblock %}

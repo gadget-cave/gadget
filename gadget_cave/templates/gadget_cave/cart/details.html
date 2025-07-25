@@ -1,0 +1,74 @@
+{% extends "gadget_cave/base.html" %}
+{% load static %} {# Added {% load static %} just in case you ever add static content here #}
+
+{% block title %}Your Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4 text-center">Your Shopping Cart</h1>
+
+    {% if messages %}
+        <ul class="messages list-unstyled">
+            {% for message in messages %}
+                <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if cart and cart.items.all %} {# Check if cart exists AND has items #}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Action</th> {# Changed from Remove to Action for future updates #}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart.items.all %}
+                    <tr>
+                        <td>
+                            <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+                        </td>
+                        <td>
+                            {# Optionally, you could add update quantity functionality here #}
+                            {{ item.quantity }}
+                            {# If you want an update quantity form here, it would look something like this:
+                            <form action="{% url 'gadget_cave:cart_add' item.product.id %}" method="post" class="d-inline-flex align-items-center">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control form-control-sm" style="width: 70px; margin-right: 5px;">
+                                <input type="hidden" name="override" value="True">
+                                <button type="submit" class="btn btn-info btn-sm">Update</button>
+                            </form>
+                            #}
+                        </td>
+                        <td>₹{{ item.product.price|floatformat:2 }}</td> {# Added floatformat for consistent currency display #}
+                        <td>₹{{ item.get_total_price|floatformat:2 }}</td> {# Added floatformat #}
+                        <td>
+                            <a href="{% url 'gadget_cave:cart_remove' item.product.id %}" class="btn btn-danger btn-sm">Remove</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-info">
+                        <td colspan="3" class="text-right"><strong>Grand Total:</strong></td> {# Changed to Grand Total #}
+                        <td><strong>₹{{ cart.get_total_cost|floatformat:2 }}</strong></td> {# Assuming get_total_cost from Order model #}
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between mt-4"> {# Using flexbox for better alignment #}
+            <a href="{% url 'gadget_cave:home' %}" class="btn btn-secondary">Continue Shopping</a>
+            <a href="{% url 'gadget_cave:order_create' %}" class="btn btn-primary">Checkout</a>
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            <p class="lead mb-3">Your cart is empty.</p>
+            <p><a href="{% url 'gadget_cave:home' %}" class="btn btn-primary btn-lg">Start Shopping</a></p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "gadget_cave/base.html" %}
+{% block title %}Order Confirmed!{% endblock %}
+
+{% block content %}
+<div class="jumbotron text-center">
+    <h1 class="display-4 text-success">Order Placed Successfully!</h1>
+    <p class="lead">Thank you for your purchase from Gadget Cave.</p>
+    <hr class="my-4">
+    <p>Your order ID is: <strong>{{ order.id }}</strong></p>
+    <p>Total Amount: <strong>₹{{ order.get_total_cost }}</strong></p>
+    {% if order.upi_transaction_id %}
+    <p>Your UPI Transaction ID: <strong>{{ order.upi_transaction_id }}</strong></p>
+    {% endif %}
+    <p>We have received your order and will process it shortly. You will receive an email with the details.</p>
+    <a class="btn btn-primary btn-lg mt-3" href="{% url 'gadget_cave:home' %}" role="button">Continue Shopping</a>
+    <a class="btn btn-info btn-lg mt-3 ml-2" href="{% url 'gadget_cave:my_orders' %}" role="button">View My Orders</a>
+</div>
+{% endblock %}

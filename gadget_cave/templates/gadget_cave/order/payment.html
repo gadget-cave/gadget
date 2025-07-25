@@ -1,0 +1,64 @@
+{% extends 'gadget_cave/base.html' %}
+{% load static %} {# <--- ENSURE THIS LINE IS AT THE TOP #}
+
+{% block title %}Complete Your Payment{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2 class="mb-0">Complete Your Payment</h2>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        <ul class="messages list-unstyled">
+                            {% for message in messages %}
+                                <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    <div class="alert alert-info text-center" role="alert">
+                        <h4>Order ID: {{ order.id }}</h4>
+                        <h3>Total Amount: ₹{{ total_amount|floatformat:2 }}</h3>
+                        <p class="mb-0">Please make the payment to the UPI ID below and enter the transaction ID for confirmation.</p>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mt-4 mb-3 text-center">UPI Payment Details</h5>
+                    <div class="text-center mb-4 p-3 border rounded bg-light">
+                        <p class="lead mb-2">Our UPI ID: <strong class="text-success">{{ upi_id }}</strong></p>
+
+                        {# --- ADD QR CODE IMAGE HERE --- #}
+                        <div class="mb-3">
+                            <img src="{% static 'gadget_cave/img/g pay qr code.jpg' %}" alt="UPI QR Code" class="img-fluid" style="max-width: 250px; height: auto;">
+                        </div>
+                        {# -------------------------------- #}
+
+                        <p class="text-muted mb-0">(Open your UPI app (Google Pay, PhonePe, Paytm, etc.) and scan the QR code or transfer the exact amount.)</p>
+                        <a href="{{ upi_url }}" class="btn btn-success mt-3" target="_blank">Pay with UPI App</a>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mt-4 mb-3 text-center">Payment Confirmation</h5>
+                    <form method="post" action="{% url 'gadget_cave:confirm_payment' order.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="upi_transaction_id" class="form-label">UPI Transaction ID</label>
+                            <input type="text" class="form-control" id="upi_transaction_id" name="upi_transaction_id" placeholder="Enter UPI Transaction ID">
+                            <div class="form-text">This helps us verify your payment quickly.</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Confirm Payment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
